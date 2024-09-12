@@ -1,30 +1,48 @@
 package main
 
 import (
-	"io"
 	"log"
+	"os"
 
-	"github.com/carp-cobain/gin-todos/handlers"
-	"github.com/carp-cobain/gin-todos/models"
+	"github.com/carp-cobain/gin-todos/database"
+	"github.com/carp-cobain/gin-todos/database/repo"
+	"github.com/carp-cobain/gin-todos/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	models.ConnectDbAndMigrate()
+	if _, ok := os.LookupEnv("DISABLE_COLOR"); ok {
+		gin.DisableConsoleColor()
+	}
 
-	gin.DisableConsoleColor()
-	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = io.Discard
+	db, err := database.ConnectAndMigrate()
+	if err != nil {
+		log.Panicf("unable to connnect to db: %+v", err)
+	}
+
+	storyRepo := repo.NewStoryRepo(db)
+	taskRepo := repo.NewTaskRepo(db)
+
+	storyHandler := handler.NewStoryHandler(storyRepo)
+	taskHandler := handler.NewTaskHandler(taskRepo)
 
 	r := gin.Default()
 	v1 := r.Group("/todos/api/v1")
 	{
-		v1.GET("/stories", handlers.ListStories)
-		v1.GET("/stories/:id", handlers.GetStory)
-		v1.POST("/stories", handlers.CreateStory)
-		v1.PATCH("/stories/:id", handlers.UpdateStory)
-		v1.DELETE("/stories/:id", handlers.DeleteStory)
+		// Story routes
+		v1.GET("/stories", storyHandler.GetStories)
+		v1.GET("/stories/:id", storyHandler.GetStory)
+		v1.POST("/stories", storyHandler.CreateStory)
+		v1.PATCH("/stories/:id", storyHandler.UpdateStory)
+		v1.DELETE("/stories/:id", storyHandler.DeleteStory)
+		v1.GET("/stories/:id/tasks", taskHandler.GetTasks)
+
+		// Task routes
+		v1.GET("/tasks/:id", taskHandler.GetTask)
+		v1.POST("/tasks", taskHandler.CreateTask)
+		v1.PATCH("/tasks/:id", taskHandler.UpdateTask)
+		v1.DELETE("/tasks/:id", taskHandler.DeleteTask)
 	}
 
 	if err := r.Run(); err != nil {

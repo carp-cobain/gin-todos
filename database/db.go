@@ -1,17 +1,15 @@
-package models
+package database
 
 import (
-	"log"
 	"os"
+
+	"github.com/carp-cobain/gin-todos/database/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-// DB is an abstraction over the database
-var DB *gorm.DB
 
 // Get db connection params from env vars
 func getConnectParams() (dialect string, dsn string) {
@@ -25,26 +23,25 @@ func getConnectParams() (dialect string, dsn string) {
 	return
 }
 
-// ConnectDbAndMigrate connects to a db and runs migrations using project models.
+// ConnectAndMigrate connects to a db and runs migrations using project models.
 // Both sqlite3 and postgres are supported.
-func ConnectDbAndMigrate() {
+func ConnectAndMigrate() (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
+	dialect, dsn := getConnectParams()
 	config := &gorm.Config{
 		Logger: logger.Discard, // disable gorm logger
 	}
-
-	dialect, dsn := getConnectParams()
 	if dialect == "postgres" {
 		db, err = gorm.Open(postgres.Open(dsn), config)
 	} else {
 		db, err = gorm.Open(sqlite.Open(dsn), config)
 	}
-
 	if err != nil {
-		log.Panicf("Failed to open database: %+v", err)
+		return nil, err
 	}
-
-	db.AutoMigrate(&Story{})
-	DB = db
+	if err = db.AutoMigrate(&model.Story{}, &model.Task{}); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
