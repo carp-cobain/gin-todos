@@ -18,7 +18,7 @@ type StoryRequest struct {
 
 // CreateTaskRequest is the request type for creating tasks
 type CreateTaskRequest struct {
-	StoryID uint   `json:"storyId" binding:"required"`
+	StoryID uint64 `json:"storyId" binding:"required"`
 	Name    string `json:"name" binding:"required,max=100"`
 }
 
@@ -61,11 +61,11 @@ func getPageParams(c *gin.Context) (limit int, offset int) {
 }
 
 // Read an unsigned integer parameter with the given key
-func uintParam(c *gin.Context, key string) (uint, error) {
+func uintParam(c *gin.Context, key string) (uint64, error) {
 	value := c.Param(key)
 	i, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("%s: expected uint64, got: %s", key, value)
 	}
-	return uint(i), nil
+	return i, nil
 }

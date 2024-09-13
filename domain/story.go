@@ -6,7 +6,7 @@ import (
 
 // Story is something that needs to be done.
 type Story struct {
-	ID        uint      `json:"id"`
+	ID        uint64    `json:"id"`
 	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

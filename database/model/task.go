@@ -1,16 +1,21 @@
 package model
 
 import (
+	"time"
+
 	"github.com/carp-cobain/gin-todos/domain"
 	"gorm.io/gorm"
 )
 
 type Task struct {
-	gorm.Model
-	StoryID uint
-	Story   Story `gorm:"foreignKey:StoryID"`
-	Name    string
-	Status  string
+	ID        uint64 `gorm:"primarykey"`
+	StoryID   uint64 `gorm:"index"`
+	Story     Story  `gorm:"foreignKey:StoryID"`
+	Name      string
+	Status    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (self Task) ToDomain() domain.Task {

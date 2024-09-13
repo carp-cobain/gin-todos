@@ -8,7 +8,7 @@ import (
 )
 
 // SelectStory selects a single story from a database
-func SelectStory(db *gorm.DB, id uint) (story model.Story, err error) {
+func SelectStory(db *gorm.DB, id uint64) (story model.Story, err error) {
 	err = db.Where("id = ?", id).First(&story).Error
 	return
 }
@@ -27,7 +27,7 @@ func InsertStory(db *gorm.DB, title string) (story model.Story, err error) {
 }
 
 // UpdateStory updates a story in a database
-func UpdateStory(db *gorm.DB, id uint, title string) (story model.Story, err error) {
+func UpdateStory(db *gorm.DB, id uint64, title string) (story model.Story, err error) {
 	if story, err = SelectStory(db, id); err == nil {
 		err = db.
 			Model(&story).
@@ -38,7 +38,7 @@ func UpdateStory(db *gorm.DB, id uint, title string) (story model.Story, err err
 }
 
 // DeleteStory deletes a story from a database
-func DeleteStory(db *gorm.DB, id uint) (rows int64, err error) {
+func DeleteStory(db *gorm.DB, id uint64) (rows int64, err error) {
 	var story model.Story
 	if story, err = SelectStory(db, id); err == nil {
 		result := db.Delete(&story)

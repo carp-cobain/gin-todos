@@ -18,7 +18,7 @@ func NewStoryRepo(db *gorm.DB) StoryRepo {
 }
 
 // GetStory reads a single story from a database.
-func (self StoryRepo) GetStory(id uint) (story domain.Story, err error) {
+func (self StoryRepo) GetStory(id uint64) (story domain.Story, err error) {
 	var model model.Story
 	if model, err = query.SelectStory(self.db, id); err == nil {
 		story = model.ToDomain()
@@ -46,7 +46,7 @@ func (self StoryRepo) CreateStory(title string) (story domain.Story, err error) 
 }
 
 // UpdateStory updates a story in a database.
-func (self StoryRepo) UpdateStory(id uint, title string) (story domain.Story, err error) {
+func (self StoryRepo) UpdateStory(id uint64, title string) (story domain.Story, err error) {
 	var model model.Story
 	if model, err = query.UpdateStory(self.db, id, title); err == nil {
 		story = model.ToDomain()
@@ -55,6 +55,6 @@ func (self StoryRepo) UpdateStory(id uint, title string) (story domain.Story, er
 }
 
 // RemoveStory deletes a story from a database.
-func (self StoryRepo) DeleteStory(id uint) (int64, error) {
+func (self StoryRepo) DeleteStory(id uint64) (int64, error) {
 	return query.DeleteStory(self.db, id)
 }

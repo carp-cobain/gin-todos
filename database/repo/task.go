@@ -18,7 +18,7 @@ func NewTaskRepo(db *gorm.DB) TaskRepo {
 }
 
 // GetTask reads a single story from a database.
-func (self TaskRepo) GetTask(id uint) (task domain.Task, err error) {
+func (self TaskRepo) GetTask(id uint64) (task domain.Task, err error) {
 	var model model.Task
 	if model, err = query.SelectTask(self.db, id); err == nil {
 		task = model.ToDomain()
@@ -27,8 +27,8 @@ func (self TaskRepo) GetTask(id uint) (task domain.Task, err error) {
 }
 
 // GetTasks reads a page of tasks from a database.
-func (self TaskRepo) GetTasks(storyID uint, limit, offset int) []domain.Task {
-	model := query.SelectTasks(self.db, uint(storyID), limit, offset)
+func (self TaskRepo) GetTasks(storyID uint64, limit, offset int) []domain.Task {
+	model := query.SelectTasks(self.db, uint64(storyID), limit, offset)
 	tasks := make([]domain.Task, len(model))
 	for i := 0; i < len(model); i++ {
 		tasks[i] = model[i].ToDomain()
@@ -37,16 +37,16 @@ func (self TaskRepo) GetTasks(storyID uint, limit, offset int) []domain.Task {
 }
 
 // CreateTask inserts a new story into a database.
-func (self TaskRepo) CreateTask(storyID uint, name string) (story domain.Task, err error) {
+func (self TaskRepo) CreateTask(storyID uint64, name string) (story domain.Task, err error) {
 	var model model.Task
-	if model, err = query.InsertTask(self.db, uint(storyID), name); err == nil {
+	if model, err = query.InsertTask(self.db, uint64(storyID), name); err == nil {
 		story = model.ToDomain()
 	}
 	return
 }
 
 // UpdateTask updates a story in a database.
-func (self TaskRepo) UpdateTask(id uint, name, status string) (story domain.Task, err error) {
+func (self TaskRepo) UpdateTask(id uint64, name, status string) (story domain.Task, err error) {
 	var model model.Task
 	if model, err = query.UpdateTask(self.db, id, name, status); err == nil {
 		story = model.ToDomain()
@@ -55,6 +55,6 @@ func (self TaskRepo) UpdateTask(id uint, name, status string) (story domain.Task
 }
 
 // DeleteTask deletes a story from a database.
-func (self TaskRepo) DeleteTask(id uint) (int64, error) {
+func (self TaskRepo) DeleteTask(id uint64) (int64, error) {
 	return query.DeleteTask(self.db, id)
 }
