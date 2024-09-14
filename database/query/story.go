@@ -31,7 +31,7 @@ func UpdateStory(db *gorm.DB, id uint64, title string) (story model.Story, err e
 	if story, err = SelectStory(db, id); err == nil {
 		err = db.
 			Model(&story).
-			Updates(map[string]any{"title": title, "updated_at": time.Now()}).
+			Updates(updates{"title": title, "updated_at": time.Now()}).
 			Error
 	}
 	return

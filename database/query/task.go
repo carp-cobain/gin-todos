@@ -40,11 +40,7 @@ func UpdateTask(db *gorm.DB, id uint64, name, status string) (task model.Task, e
 		status = task.Status
 	}
 	result := db.Model(&task).Updates(
-		map[string]any{
-			"name":       name,
-			"status":     status,
-			"updated_at": time.Now(),
-		},
+		updates{"name": name, "status": status, "updated_at": time.Now()},
 	)
 	err = result.Error
 	return
