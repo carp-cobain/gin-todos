@@ -55,6 +55,6 @@ func (self StoryRepo) UpdateStory(id uint64, title string) (story domain.Story, 
 }
 
 // RemoveStory deletes a story from a database.
-func (self StoryRepo) DeleteStory(id uint64) (int64, error) {
+func (self StoryRepo) DeleteStory(id uint64) error {
 	return query.DeleteStory(self.db, id)
 }

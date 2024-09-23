@@ -55,6 +55,6 @@ func (self TaskRepo) UpdateTask(id uint64, name, status string) (story domain.Ta
 }
 
 // DeleteTask deletes a story from a database.
-func (self TaskRepo) DeleteTask(id uint64) (int64, error) {
+func (self TaskRepo) DeleteTask(id uint64) error {
 	return query.DeleteTask(self.db, id)
 }

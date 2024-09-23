@@ -23,5 +23,5 @@ type TaskWriter interface {
 	// UpdateTask updates an existing story
 	UpdateTask(id uint64, name, status string) (domain.Task, error)
 	// DeleteTask deletes an existing story
-	DeleteTask(id uint64) (int64, error)
+	DeleteTask(id uint64) error
 }

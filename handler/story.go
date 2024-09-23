@@ -86,7 +86,7 @@ func (self StoryHandler) DeleteStory(c *gin.Context) {
 		badRequest(c, nil)
 		return
 	}
-	if _, err := self.keeper.DeleteStory(id); err != nil {
+	if err := self.keeper.DeleteStory(id); err != nil {
 		notFound(c, nil)
 		return
 	}

@@ -38,11 +38,10 @@ func UpdateStory(db *gorm.DB, id uint64, title string) (story model.Story, err e
 }
 
 // DeleteStory deletes a story from a database
-func DeleteStory(db *gorm.DB, id uint64) (rows int64, err error) {
+func DeleteStory(db *gorm.DB, id uint64) (err error) {
 	var story model.Story
 	if story, err = SelectStory(db, id); err == nil {
-		result := db.Delete(&story)
-		rows, err = result.RowsAffected, result.Error
+		err = db.Delete(&story).Error
 	}
 	return
 }

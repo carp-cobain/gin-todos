@@ -23,5 +23,5 @@ type StoryWriter interface {
 	// UpdateStory updates an existing story
 	UpdateStory(id uint64, title string) (domain.Story, error)
 	// DeleteStory deletes an existing story
-	DeleteStory(id uint64) (int64, error)
+	DeleteStory(id uint64) error
 }

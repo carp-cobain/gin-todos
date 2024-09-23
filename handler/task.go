@@ -100,7 +100,7 @@ func (self TaskHandler) DeleteTask(c *gin.Context) {
 		badRequest(c, nil)
 		return
 	}
-	if _, err := self.keeper.DeleteTask(id); err != nil {
+	if err := self.keeper.DeleteTask(id); err != nil {
 		notFound(c, nil)
 		return
 	}

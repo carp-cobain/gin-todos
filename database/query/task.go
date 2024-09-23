@@ -47,11 +47,10 @@ func UpdateTask(db *gorm.DB, id uint64, name, status string) (task model.Task, e
 }
 
 // DeleteTask deletes a task from a database
-func DeleteTask(db *gorm.DB, id uint64) (rows int64, err error) {
+func DeleteTask(db *gorm.DB, id uint64) (err error) {
 	var task model.Task
 	if task, err = SelectTask(db, id); err == nil {
-		result := db.Delete(&task)
-		rows, err = result.RowsAffected, result.Error
+		err = db.Delete(&task).Error
 	}
 	return
 }
