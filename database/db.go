@@ -11,24 +11,23 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Get db connection params from env vars
-func getConnectParams() (dialect string, dsn string) {
-	dialect, dsn = "sqlite3", "todos.db"
-	if envar, ok := os.LookupEnv("DB_DIALECT"); ok {
-		dialect = envar
+// ConnectAndMigrate connects to a database and runs migrations using project models.
+func ConnectAndMigrate() (*gorm.DB, error) {
+	dialect, dsn := lookupConnectParams()
+	db, err := Connect(dialect, dsn)
+	if err != nil {
+		return nil, err
 	}
-	if envar, ok := os.LookupEnv("DB_DSN"); ok {
-		dsn = envar
+	if err = db.AutoMigrate(&model.Story{}, &model.Task{}); err != nil {
+		return nil, err
 	}
-	return
+	return db, nil
 }
 
-// ConnectAndMigrate connects to a db and runs migrations using project models.
-// Both sqlite3 and postgres are supported.
-func ConnectAndMigrate() (*gorm.DB, error) {
+// Connect to a database. Either sqlite3 or postgres are supported.
+func Connect(dialect, dsn string) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
-	dialect, dsn := getConnectParams()
 	config := &gorm.Config{
 		Logger: logger.Discard, // disable gorm logger
 	}
@@ -40,8 +39,17 @@ func ConnectAndMigrate() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Story{}, &model.Task{}); err != nil {
-		return nil, err
+	return db, err
+}
+
+// Lookup db connection params from env vars
+func lookupConnectParams() (dialect string, dsn string) {
+	dialect, dsn = "sqlite3", "todos.db"
+	if envar, ok := os.LookupEnv("DB_DIALECT"); ok {
+		dialect = envar
 	}
-	return db, nil
+	if envar, ok := os.LookupEnv("DB_DSN"); ok {
+		dsn = envar
+	}
+	return
 }

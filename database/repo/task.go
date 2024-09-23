@@ -28,7 +28,7 @@ func (self TaskRepo) GetTask(id uint64) (task domain.Task, err error) {
 
 // GetTasks reads a page of tasks from a database.
 func (self TaskRepo) GetTasks(storyID uint64, limit, offset int) []domain.Task {
-	model := query.SelectTasks(self.db, uint64(storyID), limit, offset)
+	model := query.SelectTasks(self.db, storyID, limit, offset)
 	tasks := make([]domain.Task, len(model))
 	for i := 0; i < len(model); i++ {
 		tasks[i] = model[i].ToDomain()

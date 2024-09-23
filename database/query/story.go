@@ -37,11 +37,19 @@ func UpdateStory(db *gorm.DB, id uint64, title string) (story model.Story, err e
 	return
 }
 
-// DeleteStory deletes a story from a database
-func DeleteStory(db *gorm.DB, id uint64) (err error) {
-	var story model.Story
-	if story, err = SelectStory(db, id); err == nil {
-		err = db.Delete(&story).Error
+// DeleteStory deletes a story and all its child tasks from a database.
+func DeleteStory(db *gorm.DB, id uint64) error {
+	story, err := SelectStory(db, id)
+	if err != nil {
+		return err
 	}
-	return
+	result := db.
+		Begin().
+		Exec("UPDATE tasks SET deleted_at = ? WHERE story_id = ?", time.Now(), id).
+		Delete(&story).
+		Commit()
+	if err := result.Error; err != nil {
+		return err
+	}
+	return nil
 }
