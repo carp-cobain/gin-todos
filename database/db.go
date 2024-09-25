@@ -39,12 +39,27 @@ func Connect(dialect, dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	if dialect == "sqlite3" {
+		if err = optimize(db); err != nil {
+			return nil, err
+		}
+	}
 	return db, nil
 }
 
 // Run migrations on a database using project models.
 func RunMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(&model.Story{}, &model.Task{})
+}
+
+// Optimize a sqlite database for production.
+func optimize(db *gorm.DB) error {
+	return db.Exec(`PRAGMA journal_mode = WAL;
+		PRAGMA busy_timeout = 5000;
+		PRAGMA synchronous = NORMAL;
+		PRAGMA cache_size = 1000000000;
+		PRAGMA foreign_keys = true;
+		PRAGMA temp_store = memory;`).Error
 }
 
 // Lookup db connection params from env vars
