@@ -14,8 +14,8 @@ func SelectStory(db *gorm.DB, id uint64) (story model.Story, err error) {
 }
 
 // SelectStories selects a page of stories from a database
-func SelectStories(db *gorm.DB, limit, offset int) (stories []model.Story) {
-	db.Order("created_at").Limit(limit).Offset(offset).Find(&stories)
+func SelectStories(db *gorm.DB, cursor uint64, limit int) (stories []model.Story) {
+	db.Order("id").Where("id > ?", cursor).Limit(limit).Find(&stories)
 	return
 }
 
@@ -43,13 +43,10 @@ func DeleteStory(db *gorm.DB, id uint64) error {
 	if err != nil {
 		return err
 	}
-	result := db.
+	return db.
 		Begin().
 		Exec("UPDATE tasks SET deleted_at = ? WHERE story_id = ?", time.Now(), id).
 		Delete(&story).
-		Commit()
-	if err := result.Error; err != nil {
-		return err
-	}
-	return nil
+		Commit().
+		Error
 }

@@ -27,28 +27,32 @@ func (self TaskRepo) GetTask(id uint64) (task domain.Task, err error) {
 }
 
 // GetTasks reads a page of tasks from a database.
-func (self TaskRepo) GetTasks(storyID uint64, limit, offset int) []domain.Task {
-	model := query.SelectTasks(self.db, storyID, limit, offset)
-	tasks := make([]domain.Task, len(model))
-	for i := 0; i < len(model); i++ {
-		tasks[i] = model[i].ToDomain()
+func (self TaskRepo) GetTasks(storyID, cursor uint64, limit int) (uint64, []domain.Task) {
+	models := query.SelectTasks(self.db, storyID, cursor, limit)
+	tasks := make([]domain.Task, len(models))
+	var nextCursor uint64
+	for i, model := range models {
+		tasks[i] = model.ToDomain()
+		if model.ID > nextCursor {
+			nextCursor = model.ID
+		}
 	}
-	return tasks
+	return nextCursor, tasks
 }
 
 // CreateTask inserts a new story into a database.
-func (self TaskRepo) CreateTask(storyID uint64, name string) (story domain.Task, err error) {
+func (self TaskRepo) CreateTask(storyID uint64, title string) (story domain.Task, err error) {
 	var model model.Task
-	if model, err = query.InsertTask(self.db, uint64(storyID), name); err == nil {
+	if model, err = query.InsertTask(self.db, uint64(storyID), title); err == nil {
 		story = model.ToDomain()
 	}
 	return
 }
 
 // UpdateTask updates a story in a database.
-func (self TaskRepo) UpdateTask(id uint64, name, status string) (story domain.Task, err error) {
+func (self TaskRepo) UpdateTask(id uint64, title, status string) (story domain.Task, err error) {
 	var model model.Task
-	if model, err = query.UpdateTask(self.db, id, name, status); err == nil {
+	if model, err = query.UpdateTask(self.db, id, title, status); err == nil {
 		story = model.ToDomain()
 	}
 	return

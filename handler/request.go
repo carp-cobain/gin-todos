@@ -16,46 +16,64 @@ type StoryRequest struct {
 	Title string `json:"title" binding:"required,max=100"`
 }
 
+// Validate request params
+func (self StoryRequest) Validate() (string, error) {
+	title := strings.TrimSpace(self.Title)
+	if title == "" {
+		return "", fmt.Errorf("story title cannot be blank")
+	}
+	return title, nil
+}
+
 // CreateTaskRequest is the request type for creating tasks
 type CreateTaskRequest struct {
-	StoryID uint64 `json:"storyId" binding:"required"`
-	Name    string `json:"name" binding:"required,max=100"`
+	StoryID uint64 `json:"storyId" binding:"required,min=1"`
+	Title   string `json:"title" binding:"required,max=100"`
+}
+
+// Validate request params
+func (self CreateTaskRequest) Validate() (uint64, string, error) {
+	title := strings.TrimSpace(self.Title)
+	if title == "" {
+		return 0, "", fmt.Errorf("task title cannot be blank")
+	}
+	return self.StoryID, title, nil
 }
 
 // UpdateTaskRequest is the request type for updating tasks
 type UpdateTaskRequest struct {
-	Name   string `json:"name"`
+	Title  string `json:"title"`
 	Status string `json:"status"`
 }
 
 // Check status
 func (self UpdateTaskRequest) Validate() (string, string, error) {
-	name := strings.TrimSpace(self.Name)
+	title := strings.TrimSpace(self.Title)
 	status := strings.ToLower(strings.TrimSpace(self.Status))
-	if name == "" && status == "" {
-		return "", "", fmt.Errorf("no task update data provided")
+	if title == "" && status == "" {
+		return "", "", fmt.Errorf("no task update provided")
 	}
 	if status != "" && status != "complete" && status != "incomplete" {
 		return "", "", fmt.Errorf("status: invalid variant: %s", self.Status)
 	}
-	return name, status, nil
+	return title, status, nil
 }
 
 // Get and return bounded query parameters for paging. If no query params are found, default values
 // are returned.
-func getPageParams(c *gin.Context) (limit int, offset int) {
-	limit, offset = 100, 0
+func getPageParams(c *gin.Context) (cursor uint64, limit int) {
+	cursor, limit = 0, 100
 	if limitQuery, ok := c.GetQuery("limit"); ok {
 		limit, _ = strconv.Atoi(limitQuery)
 	}
-	if offsetQuery, ok := c.GetQuery("offset"); ok {
-		offset, _ = strconv.Atoi(offsetQuery)
+	if cursorQuery, ok := c.GetQuery("cursor"); ok {
+		cursor, _ = strconv.ParseUint(cursorQuery, 10, 64)
 	}
 	if limit > maxLimit {
 		limit = maxLimit
 	}
-	if offset < 0 {
-		offset = 0
+	if cursor < 0 {
+		cursor = 0
 	}
 	return
 }

@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"strings"
-
 	"github.com/carp-cobain/gin-todos/keeper"
 	"github.com/gin-gonic/gin"
 )
@@ -20,9 +18,9 @@ func NewStoryHandler(keeper keeper.StoryKeeper) StoryHandler {
 // GET /stories
 // Get a page of stories
 func (self StoryHandler) GetStories(c *gin.Context) {
-	limit, offset := getPageParams(c)
-	stories := self.keeper.GetStories(limit, offset)
-	okJson(c, gin.H{"stories": stories})
+	cursor, limit := getPageParams(c)
+	next, stories := self.keeper.GetStories(cursor, limit)
+	okJson(c, gin.H{"cursor": next, "stories": stories})
 }
 
 // GET /stories/:id
@@ -49,7 +47,12 @@ func (self StoryHandler) CreateStory(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	story, err := self.keeper.CreateStory(strings.TrimSpace(request.Title))
+	title, err := request.Validate()
+	if err != nil {
+		badRequest(c, err)
+		return
+	}
+	story, err := self.keeper.CreateStory(title)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -70,7 +73,7 @@ func (self StoryHandler) UpdateStory(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	story, err := self.keeper.UpdateStory(id, strings.TrimSpace(request.Title))
+	story, err := self.keeper.UpdateStory(id, request.Title)
 	if err != nil {
 		notFound(c, err)
 		return

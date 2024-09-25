@@ -27,13 +27,17 @@ func (self StoryRepo) GetStory(id uint64) (story domain.Story, err error) {
 }
 
 // GetStories reads a page of stories from a database.
-func (self StoryRepo) GetStories(limit, offset int) []domain.Story {
-	model := query.SelectStories(self.db, limit, offset)
-	stories := make([]domain.Story, len(model))
-	for i := 0; i < len(model); i++ {
-		stories[i] = model[i].ToDomain()
+func (self StoryRepo) GetStories(cursor uint64, limit int) (uint64, []domain.Story) {
+	models := query.SelectStories(self.db, cursor, limit)
+	stories := make([]domain.Story, len(models))
+	var nextCursor uint64
+	for i, model := range models {
+		stories[i] = model.ToDomain()
+		if model.ID > nextCursor {
+			nextCursor = model.ID
+		}
 	}
-	return stories
+	return nextCursor, stories
 }
 
 // CreateStory inserts a new story into a database.

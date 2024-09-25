@@ -13,7 +13,7 @@ type StoryReader interface {
 	// GetStory reads a single story
 	GetStory(id uint64) (domain.Story, error)
 	// GetStories reads a page of stories
-	GetStories(limit, offset int) []domain.Story
+	GetStories(cursor uint64, limit int) (uint64, []domain.Story)
 }
 
 // StoryWriter writes stories

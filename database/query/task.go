@@ -14,33 +14,32 @@ func SelectTask(db *gorm.DB, id uint64) (task model.Task, err error) {
 }
 
 // SelectTasks selects a page of tasks for a task from a database
-func SelectTasks(db *gorm.DB, storyID uint64, limit, offset int) (tasks []model.Task) {
-	db.Where("story_id = ?", storyID).Order("created_at").Limit(limit).Offset(offset).
-		Find(&tasks)
+func SelectTasks(db *gorm.DB, storyID, cursor uint64, limit int) (tasks []model.Task) {
+	db.Where("story_id = ?", storyID).Where("id > ?", cursor).Order("id").Limit(limit).Find(&tasks)
 	return
 }
 
 // InsertTask inserts a new task into a database
-func InsertTask(db *gorm.DB, storyID uint64, name string) (task model.Task, err error) {
-	task = model.Task{StoryID: storyID, Name: name, Status: "incomplete"}
+func InsertTask(db *gorm.DB, storyID uint64, title string) (task model.Task, err error) {
+	task = model.Task{StoryID: storyID, Title: title, Status: "incomplete"}
 	err = db.Create(&task).Error
 	return
 }
 
 // UpdateTask updates a task in a database
-func UpdateTask(db *gorm.DB, id uint64, name, status string) (task model.Task, err error) {
+func UpdateTask(db *gorm.DB, id uint64, title, status string) (task model.Task, err error) {
 	task, err = SelectTask(db, id)
 	if err != nil {
 		return
 	}
-	if name == "" {
-		name = task.Name
+	if title == "" {
+		title = task.Title
 	}
 	if status == "" {
 		status = task.Status
 	}
 	result := db.Model(&task).Updates(
-		updates{"name": name, "status": status, "updated_at": time.Now()},
+		updates{"title": title, "status": status, "updated_at": time.Now()},
 	)
 	err = result.Error
 	return

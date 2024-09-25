@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"strings"
-
 	"github.com/carp-cobain/gin-todos/keeper"
 	"github.com/gin-gonic/gin"
 )
@@ -25,9 +23,9 @@ func (self TaskHandler) GetTasks(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	limit, offset := getPageParams(c)
-	tasks := self.keeper.GetTasks(storyID, limit, offset)
-	okJson(c, gin.H{"tasks": tasks})
+	cursor, limit := getPageParams(c)
+	next, tasks := self.keeper.GetTasks(storyID, cursor, limit)
+	okJson(c, gin.H{"tasks": tasks, "cursor": next})
 }
 
 // GET /tasks/:id
@@ -55,10 +53,12 @@ func (self TaskHandler) CreateTask(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	task, err := self.keeper.CreateTask(
-		request.StoryID,
-		strings.TrimSpace(request.Name),
-	)
+	storyID, title, err := request.Validate()
+	if err != nil {
+		badRequest(c, err)
+		return
+	}
+	task, err := self.keeper.CreateTask(storyID, title)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -79,12 +79,12 @@ func (self TaskHandler) UpdateTask(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	name, status, err := request.Validate()
+	title, status, err := request.Validate()
 	if err != nil {
 		badRequest(c, err)
 		return
 	}
-	task, err := self.keeper.UpdateTask(id, name, status)
+	task, err := self.keeper.UpdateTask(id, title, status)
 	if err != nil {
 		notFound(c, err)
 		return

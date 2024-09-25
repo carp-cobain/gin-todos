@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/carp-cobain/gin-todos/database"
-	"github.com/carp-cobain/gin-todos/database/model"
 	"github.com/carp-cobain/gin-todos/database/repo"
 	"gorm.io/gorm"
 )
@@ -12,10 +11,10 @@ import (
 func createTestDB(t *testing.T) *gorm.DB {
 	db, err := database.Connect("sqlite3", "file::memory:?cache=shared")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("unable to connect to database: %+v", err)
 	}
-	if err := db.AutoMigrate(&model.Story{}, &model.Task{}); err != nil {
-		t.Fatal(err)
+	if err := database.RunMigrations(db); err != nil {
+		t.Fatalf("unable to auto migrate: %+v", err)
 	}
 	return db
 }
@@ -23,67 +22,67 @@ func createTestDB(t *testing.T) *gorm.DB {
 func TestStoryRepo(t *testing.T) {
 	// Connect to test sqlite db
 	db := createTestDB(t)
-	repo := repo.NewStoryRepo(db)
+	storyRepo := repo.NewStoryRepo(db)
 	// Create
-	story, err := repo.CreateStory("Story 1")
+	story, err := storyRepo.CreateStory("Story 1")
 	if err != nil {
 		t.Fatalf("unable to create story: %+v", err)
 	}
 	// Read
-	if _, err := repo.GetStory(story.ID); err != nil {
+	if _, err := storyRepo.GetStory(story.ID); err != nil {
 		t.Fatalf("unable to get story by ID: %+v", err)
 	}
-	stories := repo.GetStories(10, 0)
+	_, stories := storyRepo.GetStories(0, 10)
 	if len(stories) != 1 || stories[0].ID != story.ID {
 		t.Fail()
 	}
 	// Update
-	if _, err := repo.UpdateStory(story.ID, "Story 1 (updated)"); err != nil {
+	if _, err := storyRepo.UpdateStory(story.ID, "Story 1 (updated)"); err != nil {
 		t.Fatalf("unable to update story: %+v", err)
 	}
 	// Delete
-	if err := repo.DeleteStory(story.ID); err != nil {
+	if err := storyRepo.DeleteStory(story.ID); err != nil {
 		t.Fatalf("unable to delete story: %+v", err)
 	}
 	// Ensure deleted
-	if story, err := repo.GetStory(story.ID); err == nil {
-		t.Fatalf("story should have been deleted but was found: %+v", story)
+	if story, err := storyRepo.GetStory(story.ID); err == nil {
+		t.Fatalf("story was not deleted: %+v", story)
 	}
 }
 
 func TestTaskRepo(t *testing.T) {
 	// Connect to test sqlite db
 	db := createTestDB(t)
+	taskRepo := repo.NewTaskRepo(db)
 	storyRepo := repo.NewStoryRepo(db)
 	story, err := storyRepo.CreateStory("Test")
 	if err != nil {
 		t.Fatalf("unable to set up parent story: %+v", err)
 	}
-	repo := repo.NewTaskRepo(db)
 	// Create
-	task, err := repo.CreateTask(story.ID, "Task")
+	task, err := taskRepo.CreateTask(story.ID, "Task")
 	if err != nil {
 		t.Fatalf("unable to create task: %+v", err)
 	}
 	// Read
-	if _, err := repo.GetTask(task.ID); err != nil {
+	if _, err := taskRepo.GetTask(task.ID); err != nil {
 		t.Fatalf("unable to get task by ID: %+v", err)
 	}
-	tasks := repo.GetTasks(story.ID, 10, 0)
+	_, tasks := taskRepo.GetTasks(story.ID, 0, 10)
 	if len(tasks) != 1 || tasks[0].ID != task.ID {
 		t.Fail()
 	}
 	// Update
-	if _, err := repo.UpdateTask(task.ID, task.Name, "complete"); err != nil {
+	if _, err := taskRepo.UpdateTask(task.ID, task.Title, "complete"); err != nil {
 		t.Fatalf("unable to update task: %+v", err)
 	}
 	// Delete
-	if err := repo.DeleteTask(task.ID); err != nil {
+	if err := taskRepo.DeleteTask(task.ID); err != nil {
 		t.Fatalf("unable to delete task: %+v", err)
 	}
 	// Ensure deleted
-	if deleted, err := repo.GetTask(task.ID); err == nil {
-		t.Fatalf("story should have been deleted but was found: %+v", deleted)
+	if task, err := taskRepo.GetTask(task.ID); err == nil {
+		t.Fatalf("task was not deleted: %+v", task)
 	}
 	// Cleanup
 	if err := storyRepo.DeleteStory(story.ID); err != nil {

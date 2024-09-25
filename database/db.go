@@ -18,7 +18,7 @@ func ConnectAndMigrate() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Story{}, &model.Task{}); err != nil {
+	if err = RunMigrations(db); err != nil {
 		return nil, err
 	}
 	return db, nil
@@ -39,7 +39,12 @@ func Connect(dialect, dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db, err
+	return db, nil
+}
+
+// Run migrations on a database using project models.
+func RunMigrations(db *gorm.DB) error {
+	return db.AutoMigrate(&model.Story{}, &model.Task{})
 }
 
 // Lookup db connection params from env vars
