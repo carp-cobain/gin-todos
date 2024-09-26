@@ -1,6 +1,7 @@
 package database
 
 import (
+	"log"
 	"os"
 
 	"github.com/carp-cobain/gin-todos/database/model"
@@ -41,7 +42,7 @@ func Connect(dialect, dsn string) (*gorm.DB, error) {
 	}
 	if dialect == "sqlite3" {
 		if err = optimize(db); err != nil {
-			return nil, err
+			log.Printf("unable to optimize sqlite conn: %+v", err)
 		}
 	}
 	return db, nil

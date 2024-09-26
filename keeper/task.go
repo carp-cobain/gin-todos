@@ -2,10 +2,11 @@ package keeper
 
 import "github.com/carp-cobain/gin-todos/domain"
 
-// TaskKeeper reads and writes tasks
+// TaskKeeper reads, writes, and deletes tasks
 type TaskKeeper interface {
 	TaskReader
 	TaskWriter
+	TaskDeleter
 }
 
 // TaskReader reads tasks
@@ -22,6 +23,10 @@ type TaskWriter interface {
 	CreateTask(storyID uint64, title string) (domain.Task, error)
 	// UpdateTask updates an existing task
 	UpdateTask(id uint64, title, status string) (domain.Task, error)
+}
+
+// TaskDeleter deletes tasks
+type TaskDeleter interface {
 	// DeleteTask deletes an existing task
 	DeleteTask(id uint64) error
 }

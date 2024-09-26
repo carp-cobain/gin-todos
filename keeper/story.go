@@ -2,10 +2,11 @@ package keeper
 
 import "github.com/carp-cobain/gin-todos/domain"
 
-// StoryKeeper reads and writes stories
+// StoryKeeper reads, writes, and deletes stories
 type StoryKeeper interface {
 	StoryReader
 	StoryWriter
+	StoryDeleter
 }
 
 // StoryReader reads stories
@@ -22,6 +23,10 @@ type StoryWriter interface {
 	CreateStory(title string) (domain.Story, error)
 	// UpdateStory updates an existing story
 	UpdateStory(id uint64, title string) (domain.Story, error)
+}
+
+// StoryDeleter deletes stories
+type StoryDeleter interface {
 	// DeleteStory deletes an existing story
 	DeleteStory(id uint64) error
 }
