@@ -9,7 +9,7 @@ import (
 )
 
 func createTestDB(t *testing.T) *gorm.DB {
-	db, err := database.Connect("sqlite3", "file::memory:?cache=shared")
+	db, err := database.Connect("file::memory:?cache=shared")
 	if err != nil {
 		t.Fatalf("unable to connect to database: %+v", err)
 	}

@@ -8,9 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Max page size
-const maxLimit int = 1000
-
 // StoryRequest is the request type for creating and updating stories.
 type StoryRequest struct {
 	Title string `json:"title" binding:"required,max=100"`
@@ -61,21 +58,26 @@ func (self UpdateTaskRequest) Validate() (string, string, error) {
 
 // Get and return bounded query parameters for paging. If no query params are found, default values
 // are returned.
-func getPageParams(c *gin.Context) (cursor uint64, limit int) {
-	cursor, limit = 0, 100
-	if limitQuery, ok := c.GetQuery("limit"); ok {
-		limit, _ = strconv.Atoi(limitQuery)
-	}
+func getPageParams(c *gin.Context) (uint64, int) {
+	cursor, limit := uint64(0), 10
 	if cursorQuery, ok := c.GetQuery("cursor"); ok {
 		cursor, _ = strconv.ParseUint(cursorQuery, 10, 64)
 	}
-	if limit > maxLimit {
-		limit = maxLimit
+	if limitQuery, ok := c.GetQuery("limit"); ok {
+		limit, _ = strconv.Atoi(limitQuery)
 	}
-	if cursor < 0 {
-		cursor = 0
+	return cursor, clamp(limit)
+}
+
+// Ensure limit is between 10 and 1000
+func clamp(limit int) int {
+	if limit < 10 {
+		return 10
 	}
-	return
+	if limit > 1000 {
+		return 1000
+	}
+	return limit
 }
 
 // Read an unsigned integer parameter with the given key

@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// StoryRepo is a database keeper (reader and writer) of stories.
+// StoryRepo is a database keeper of stories.
 type StoryRepo struct {
 	db *gorm.DB
 }
@@ -40,7 +40,7 @@ func (self StoryRepo) GetStories(cursor uint64, limit int) (uint64, []domain.Sto
 	return nextCursor, stories
 }
 
-// CreateStory inserts a new story into a database.
+// CreateStory inserts a story in a database.
 func (self StoryRepo) CreateStory(title string) (story domain.Story, err error) {
 	var model model.Story
 	if model, err = query.InsertStory(self.db, title); err == nil {

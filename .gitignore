@@ -23,6 +23,7 @@ go.work
 # Binary files
 gin-todos
 todos.db*
+.todos.db-litestream
 
 # Dev config
 .envrc

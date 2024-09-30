@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// TaskRepo is a database keeper (reader and writer) of tasks.
+// TaskRepo is a database keeper of tasks.
 type TaskRepo struct {
 	db *gorm.DB
 }
@@ -17,7 +17,7 @@ func NewTaskRepo(db *gorm.DB) TaskRepo {
 	return TaskRepo{db}
 }
 
-// GetTask reads a single story from a database.
+// GetTask reads a single task from a database.
 func (self TaskRepo) GetTask(id uint64) (task domain.Task, err error) {
 	var model model.Task
 	if model, err = query.SelectTask(self.db, id); err == nil {
@@ -40,25 +40,25 @@ func (self TaskRepo) GetTasks(storyID, cursor uint64, limit int) (uint64, []doma
 	return nextCursor, tasks
 }
 
-// CreateTask inserts a new story into a database.
-func (self TaskRepo) CreateTask(storyID uint64, title string) (story domain.Task, err error) {
+// CreateTask inserts a task in a database.
+func (self TaskRepo) CreateTask(storyID uint64, title string) (task domain.Task, err error) {
 	var model model.Task
-	if model, err = query.InsertTask(self.db, uint64(storyID), title); err == nil {
-		story = model.ToDomain()
+	if model, err = query.InsertTask(self.db, storyID, title); err == nil {
+		task = model.ToDomain()
 	}
 	return
 }
 
-// UpdateTask updates a story in a database.
-func (self TaskRepo) UpdateTask(id uint64, title, status string) (story domain.Task, err error) {
+// UpdateTask updates a task in a database.
+func (self TaskRepo) UpdateTask(id uint64, title, status string) (task domain.Task, err error) {
 	var model model.Task
 	if model, err = query.UpdateTask(self.db, id, title, status); err == nil {
-		story = model.ToDomain()
+		task = model.ToDomain()
 	}
 	return
 }
 
-// DeleteTask deletes a story from a database.
+// DeleteTask deletes a task from a database.
 func (self TaskRepo) DeleteTask(id uint64) error {
 	return query.DeleteTask(self.db, id)
 }
