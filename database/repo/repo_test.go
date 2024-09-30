@@ -9,7 +9,7 @@ import (
 )
 
 func createTestDB(t *testing.T) *gorm.DB {
-	db, err := database.Connect("file::memory:?cache=shared")
+	db, err := database.Connect("file::memory:?cache=shared", 1)
 	if err != nil {
 		t.Fatalf("unable to connect to database: %+v", err)
 	}
@@ -22,7 +22,7 @@ func createTestDB(t *testing.T) *gorm.DB {
 func TestStoryRepo(t *testing.T) {
 	// Connect to test sqlite db
 	db := createTestDB(t)
-	storyRepo := repo.NewStoryRepo(db)
+	storyRepo := repo.NewStoryRepo(db, db)
 	// Create
 	story, err := storyRepo.CreateStory("Story 1")
 	if err != nil {
@@ -53,8 +53,8 @@ func TestStoryRepo(t *testing.T) {
 func TestTaskRepo(t *testing.T) {
 	// Connect to test sqlite db
 	db := createTestDB(t)
-	taskRepo := repo.NewTaskRepo(db)
-	storyRepo := repo.NewStoryRepo(db)
+	taskRepo := repo.NewTaskRepo(db, db)
+	storyRepo := repo.NewStoryRepo(db, db)
 	story, err := storyRepo.CreateStory("Test")
 	if err != nil {
 		t.Fatalf("unable to set up parent story: %+v", err)

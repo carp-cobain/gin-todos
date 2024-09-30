@@ -13,20 +13,24 @@ import (
 )
 
 // ConnectAndMigrate connects to a database and runs migrations using project models.
-func ConnectAndMigrate() (*gorm.DB, error) {
-	dsn := lookupConnectParams()
-	db, err := Connect(dsn)
+func ConnectAndMigrate() (*gorm.DB, *gorm.DB, error) {
+	dsn := dsnEnvLookup()
+	writer, err := Connect(dsn, 1)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if err = RunMigrations(db); err != nil {
-		return nil, err
+	if err := RunMigrations(writer); err != nil {
+		return nil, nil, err
 	}
-	return db, nil
+	reader, err := Connect(dsn, max(4, runtime.NumCPU()))
+	if err != nil {
+		return nil, nil, err
+	}
+	return reader, writer, nil
 }
 
 // Connect to a database. Either sqlite3 or postgres are supported.
-func Connect(dsn string) (*gorm.DB, error) {
+func Connect(dsn string, size int) (*gorm.DB, error) {
 	config := &gorm.Config{
 		Logger: logger.Discard, // disable gorm logger
 	}
@@ -38,7 +42,7 @@ func Connect(dsn string) (*gorm.DB, error) {
 		log.Printf("unable to optimize sqlite conn: %+v", err)
 	}
 	if sqlDB, err := db.DB(); err == nil {
-		sqlDB.SetMaxOpenConns(max(4, runtime.NumCPU()))
+		sqlDB.SetMaxOpenConns(size)
 	}
 	return db, nil
 }
@@ -58,9 +62,9 @@ func optimize(db *gorm.DB) error {
 		PRAGMA temp_store = memory;`).Error
 }
 
-// Lookup db connection params from env vars
-func lookupConnectParams() (dsn string) {
-	dsn = "todos.db"
+// Lookup db dsn param from env var
+func dsnEnvLookup() (dsn string) {
+	dsn = "todos.db?_txlock=immediate"
 	if envar, ok := os.LookupEnv("DB_DSN"); ok {
 		dsn = envar
 	}

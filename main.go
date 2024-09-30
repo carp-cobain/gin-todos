@@ -16,13 +16,13 @@ func main() {
 		gin.DisableConsoleColor()
 	}
 
-	db, err := database.ConnectAndMigrate()
+	readConn, writeConn, err := database.ConnectAndMigrate()
 	if err != nil {
 		log.Panicf("unable to connnect to db: %+v", err)
 	}
 
-	storyRepo := repo.NewStoryRepo(db)
-	taskRepo := repo.NewTaskRepo(db)
+	storyRepo := repo.NewStoryRepo(readConn, writeConn)
+	taskRepo := repo.NewTaskRepo(readConn, writeConn)
 
 	storyHandler := handler.NewStoryHandler(storyRepo)
 	taskHandler := handler.NewTaskHandler(taskRepo)
