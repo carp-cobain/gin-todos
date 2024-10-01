@@ -9,19 +9,19 @@ import (
 
 // StoryRepo is a database keeper of stories.
 type StoryRepo struct {
-	reader *gorm.DB
-	writer *gorm.DB
+	readDB  *gorm.DB
+	writeDB *gorm.DB
 }
 
 // NewStoryRepo creates a new story repo
-func NewStoryRepo(reader, writer *gorm.DB) StoryRepo {
-	return StoryRepo{reader, writer}
+func NewStoryRepo(readDB, writeDB *gorm.DB) StoryRepo {
+	return StoryRepo{readDB, writeDB}
 }
 
 // GetStory reads a single story from a database.
 func (self StoryRepo) GetStory(id uint64) (story domain.Story, err error) {
 	var model model.Story
-	if model, err = query.SelectStory(self.reader, id); err == nil {
+	if model, err = query.SelectStory(self.readDB, id); err == nil {
 		story = model.ToDomain()
 	}
 	return
@@ -29,14 +29,12 @@ func (self StoryRepo) GetStory(id uint64) (story domain.Story, err error) {
 
 // GetStories reads a page of stories from a database.
 func (self StoryRepo) GetStories(cursor uint64, limit int) (uint64, []domain.Story) {
-	models := query.SelectStories(self.reader, cursor, limit)
+	models := query.SelectStories(self.readDB, cursor, limit)
 	stories := make([]domain.Story, len(models))
 	var nextCursor uint64
 	for i, model := range models {
 		stories[i] = model.ToDomain()
-		if model.ID > nextCursor {
-			nextCursor = model.ID
-		}
+		nextCursor = max(nextCursor, model.ID)
 	}
 	return nextCursor, stories
 }
@@ -44,7 +42,7 @@ func (self StoryRepo) GetStories(cursor uint64, limit int) (uint64, []domain.Sto
 // CreateStory inserts a story in a database.
 func (self StoryRepo) CreateStory(title string) (story domain.Story, err error) {
 	var model model.Story
-	if model, err = query.InsertStory(self.writer, title); err == nil {
+	if model, err = query.InsertStory(self.writeDB, title); err == nil {
 		story = model.ToDomain()
 	}
 	return
@@ -53,7 +51,7 @@ func (self StoryRepo) CreateStory(title string) (story domain.Story, err error) 
 // UpdateStory updates a story in a database.
 func (self StoryRepo) UpdateStory(id uint64, title string) (story domain.Story, err error) {
 	var model model.Story
-	if model, err = query.UpdateStory(self.writer, id, title); err == nil {
+	if model, err = query.UpdateStory(self.writeDB, id, title); err == nil {
 		story = model.ToDomain()
 	}
 	return
@@ -61,5 +59,5 @@ func (self StoryRepo) UpdateStory(id uint64, title string) (story domain.Story, 
 
 // RemoveStory deletes a story from a database.
 func (self StoryRepo) DeleteStory(id uint64) error {
-	return query.DeleteStory(self.writer, id)
+	return query.DeleteStory(self.writeDB, id)
 }

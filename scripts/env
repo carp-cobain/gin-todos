@@ -1,0 +1,11 @@
+# database
+export DB_PATH="todos.db"
+export DB_DSN="$DB_PATH?_txlock=immediate"
+
+# replication: assumes a local minio server
+export REPLICA_URL="s3://gin-todos.localhost:9000/db"
+
+# gin
+export DISABLE_COLOR=1
+export GIN_MODE=release
+export PORT=8080
