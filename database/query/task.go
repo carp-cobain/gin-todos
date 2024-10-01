@@ -1,8 +1,6 @@
 package query
 
 import (
-	"time"
-
 	"github.com/carp-cobain/gin-todos/database/model"
 	"gorm.io/gorm"
 )
@@ -38,9 +36,7 @@ func UpdateTask(db *gorm.DB, id uint64, title, status string) (task model.Task, 
 	if status == "" {
 		status = task.Status
 	}
-	result := db.Model(&task).Updates(
-		updates{"title": title, "status": status, "updated_at": time.Now()},
-	)
+	result := db.Model(&task).Updates(updates{"title": title, "status": status})
 	err = result.Error
 	return
 }

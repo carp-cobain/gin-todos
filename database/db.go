@@ -29,8 +29,8 @@ func ConnectAndMigrate() (*gorm.DB, *gorm.DB, error) {
 	return reader, writer, nil
 }
 
-// Connect to a database. Either sqlite3 or postgres are supported.
-func Connect(dsn string, size int) (*gorm.DB, error) {
+// Connect to a sqlite3 database.
+func Connect(dsn string, maxConns int) (*gorm.DB, error) {
 	config := &gorm.Config{
 		Logger: logger.Discard, // disable gorm logger
 	}
@@ -38,11 +38,11 @@ func Connect(dsn string, size int) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = optimize(db); err != nil {
-		log.Printf("unable to optimize sqlite conn: %+v", err)
+	if err = setPragmas(db); err != nil {
+		log.Printf("unable to set PRAGMAs for sqlite connection: %+v", err)
 	}
 	if sqlDB, err := db.DB(); err == nil {
-		sqlDB.SetMaxOpenConns(size)
+		sqlDB.SetMaxOpenConns(maxConns)
 	}
 	return db, nil
 }
@@ -53,7 +53,7 @@ func RunMigrations(db *gorm.DB) error {
 }
 
 // Optimize a sqlite database for production.
-func optimize(db *gorm.DB) error {
+func setPragmas(db *gorm.DB) error {
 	return db.Exec(`PRAGMA journal_mode = WAL;
 		PRAGMA busy_timeout = 5000;
 		PRAGMA synchronous = NORMAL;
@@ -63,10 +63,10 @@ func optimize(db *gorm.DB) error {
 }
 
 // Lookup db dsn param from env var
-func dsnEnvLookup() (dsn string) {
-	dsn = "todos.db?_txlock=immediate"
-	if envar, ok := os.LookupEnv("DB_DSN"); ok {
-		dsn = envar
+func dsnEnvLookup() string {
+	dsn, ok := os.LookupEnv("DB_DSN")
+	if !ok {
+		log.Panicf("DB_DSN not defined")
 	}
-	return
+	return dsn
 }

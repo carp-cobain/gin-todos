@@ -1,10 +1,7 @@
 package model
 
 import (
-	"time"
-
 	"github.com/carp-cobain/gin-todos/domain"
-	"gorm.io/gorm"
 )
 
 type Task struct {
@@ -13,9 +10,8 @@ type Task struct {
 	Story     Story  `gorm:"foreignKey:StoryID"`
 	Title     string
 	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	CreatedAt Time
+	UpdatedAt Time
 }
 
 func (self Task) ToDomain() domain.Task {
@@ -24,7 +20,7 @@ func (self Task) ToDomain() domain.Task {
 		StoryID:   self.StoryID,
 		Title:     self.Title,
 		Status:    self.Status,
-		CreatedAt: self.CreatedAt,
-		UpdatedAt: self.UpdatedAt,
+		CreatedAt: self.CreatedAt.FromUnix(),
+		UpdatedAt: self.UpdatedAt.FromUnix(),
 	}
 }

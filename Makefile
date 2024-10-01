@@ -21,6 +21,9 @@ clean:
 run:
 	@go run main.go
 
+# Example litestream commands below
+# Assumes local database name is 'todos.db'
+
 .PHONY: replicate
 replicate:
 	@litestream replicate todos.db s3://gin-todos.localhost:9000/db
