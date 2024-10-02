@@ -73,7 +73,12 @@ func (self StoryHandler) UpdateStory(c *gin.Context) {
 		badRequest(c, err)
 		return
 	}
-	story, err := self.keeper.UpdateStory(id, request.Title)
+	title, err := request.Validate()
+	if err != nil {
+		badRequest(c, err)
+		return
+	}
+	story, err := self.keeper.UpdateStory(id, title)
 	if err != nil {
 		notFound(c, err)
 		return
