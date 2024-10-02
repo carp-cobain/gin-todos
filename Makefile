@@ -28,3 +28,7 @@ replicate:
 .PHONY: restore
 restore:
 	@litestream restore -if-db-not-exists -config litestream.yml ${DB_PATH}
+
+.PHONY: exec
+exec:
+	@litestream replicate -config litestream.yml -exec "$(CURDIR)/gin-todos"
