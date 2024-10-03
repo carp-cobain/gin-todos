@@ -28,15 +28,14 @@ func (self TaskRepo) GetTask(id uint64) (task domain.Task, err error) {
 }
 
 // GetTasks reads a page of tasks from a database.
-func (self TaskRepo) GetTasks(storyID, cursor uint64, limit int) (uint64, []domain.Task) {
+func (self TaskRepo) GetTasks(storyID, cursor uint64, limit int) (next uint64, tasks []domain.Task) {
 	models := query.SelectTasks(self.readDB, storyID, cursor, limit)
-	tasks := make([]domain.Task, len(models))
-	var nextCursor uint64
+	tasks = make([]domain.Task, len(models))
 	for i, model := range models {
 		tasks[i] = model.ToDomain()
-		nextCursor = max(nextCursor, model.ID)
+		next = max(next, model.ID)
 	}
-	return nextCursor, tasks
+	return
 }
 
 // CreateTask inserts a task in a database.

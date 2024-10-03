@@ -71,13 +71,10 @@ func getPageParams(c *gin.Context) (uint64, int) {
 
 // Ensure limit is between 10 and 1000
 func clamp(limit int) int {
-	if limit < 10 {
-		return 10
+	if limit >= 10 && limit <= 1000 {
+		return limit
 	}
-	if limit > 1000 {
-		return 1000
-	}
-	return limit
+	return 10
 }
 
 // Read an unsigned integer parameter with the given key

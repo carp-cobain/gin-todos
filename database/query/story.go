@@ -13,7 +13,7 @@ func SelectStory(db *gorm.DB, id uint64) (story model.Story, err error) {
 
 // SelectStories selects a page of stories from a database
 func SelectStories(db *gorm.DB, cursor uint64, limit int) (stories []model.Story) {
-	db.Order("id").Where("id > ?", cursor).Limit(limit).Find(&stories)
+	db.Where("id > ?", cursor).Order("id").Limit(limit).Find(&stories)
 	return
 }
 

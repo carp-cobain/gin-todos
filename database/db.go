@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -15,18 +16,18 @@ import (
 // ConnectAndMigrate connects to a database and runs migrations using project models.
 func ConnectAndMigrate() (*gorm.DB, *gorm.DB, error) {
 	dsn := dsnEnvLookup()
-	writer, err := Connect(dsn, 1)
+	writeDB, err := Connect(dsn, 1)
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := RunMigrations(writer); err != nil {
-		return nil, nil, err
-	}
-	reader, err := Connect(dsn, max(4, runtime.NumCPU()))
+	readDB, err := Connect(dsn, max(4, runtime.NumCPU()))
 	if err != nil {
 		return nil, nil, err
 	}
-	return reader, writer, nil
+	if err := RunMigrations(writeDB); err != nil {
+		return nil, nil, err
+	}
+	return readDB, writeDB, nil
 }
 
 // Connect to a sqlite3 database.
@@ -54,12 +55,20 @@ func RunMigrations(db *gorm.DB) error {
 
 // Optimize a sqlite database for production.
 func setPragmas(db *gorm.DB) error {
-	return db.Exec(`PRAGMA journal_mode = WAL;
-		PRAGMA busy_timeout = 5000;
-		PRAGMA synchronous = NORMAL;
-		PRAGMA cache_size = 1000000000;
-		PRAGMA foreign_keys = true;
-		PRAGMA temp_store = memory;`).Error
+	stmts := []string{
+		"journal_mode = WAL",
+		"busy_timeout = 5000",
+		"synchronous = NORMAL",
+		"cache_size = 1000000000",
+		"foreign_keys = true",
+		"temp_store = memory",
+	}
+	for _, stmt := range stmts {
+		if err := db.Exec(fmt.Sprintf("PRAGMA %s;", stmt)).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Lookup db dsn param from env var
